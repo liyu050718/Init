@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public bool haveKey;
     public float speed;
     void Update()
     {
@@ -15,5 +16,17 @@ public class PlayerController : MonoBehaviour
             transform.position += Vector3.right * speed*Time.deltaTime;
         if(Input.GetKey(KeyCode.A))
             transform.position += Vector3.left * speed * Time.deltaTime;
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        bool canGetKey = false;
+        if(collision.tag == "Key")
+        {
+            canGetKey = true;
+        }
+        if(canGetKey&&Input.GetKeyDown(KeyCode.E))
+        {
+            haveKey = true;
+        }
     }
 }
