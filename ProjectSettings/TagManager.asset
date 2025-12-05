@@ -5,18 +5,19 @@ TagManager:
   serializedVersion: 2
   tags:
   - Key
+  - Room
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player1
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Room1
+  - Room2
+  - Room3
+  - Room4
+  - Player
   - 
   - 
   - 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayDeathAnimation : MonoBehaviour
 {
     [Header("死亡动画设置")]
     public GameObject deathAnimationPrefab;  // 引用您的动画预制体
