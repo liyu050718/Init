@@ -4,9 +4,15 @@ using UnityEngine;
 
 public class Test : MonoBehaviour
 {
+    public GameObject Boss;
     // Start is called before the first frame update
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Boss.GetComponent<Boss>().TakeDamage(Item.圆规);
+            Boss.GetComponent<Boss>().TakeDamage(Item.消防斧);
+        }
         if(Input.GetKeyDown(KeyCode.Space))
         {
             PropManager.Instance.Pick(Item.日记);

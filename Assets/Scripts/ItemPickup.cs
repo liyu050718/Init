@@ -237,7 +237,7 @@ public class AutoClosePickup : MonoSingleton<AutoClosePickup>
         }
     }
 
-    void OnDestroy()
+     protected override void  OnDestroy()
     {
         if (closeCoroutine != null)
         {

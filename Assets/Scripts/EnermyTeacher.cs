@@ -18,5 +18,14 @@ public class EnermyTeacher : MonoBehaviour
     {
             rb.position += (Vector2)(taget.transform.position - transform.position).normalized * speed*Time.deltaTime;
         rb.position += (Vector2)(transform.position.normalized * force / (transform.position.magnitude*3))*Time.deltaTime;
+
+        if(taget.transform.position.x > transform.position.x)
+        {
+            transform.localScale = new Vector2(1, 1);
+        }
+        else
+        {
+            transform.localScale = new Vector2(-1, 1);
+        }
     }
 }

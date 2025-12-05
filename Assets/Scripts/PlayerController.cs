@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    private GameObject Key;
     private int currentDir = 0;
     public int dir = 0;        
     public bool ismoving = false;
@@ -11,6 +12,7 @@ public class PlayerController : MonoBehaviour
     public float speed;
     public Animator anim;
     public Rigidbody2D rb;
+    public bool canGetKey = false;
     public void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -18,6 +20,13 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
+
+        if (canGetKey && Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("adfadf");
+            haveKey = true;
+            Destroy(Key);
+        }
         {
             anim.SetFloat("Velocityx", rb.velocity.x);
             anim.SetFloat("Velocityy", rb.velocity.y);
@@ -78,18 +87,16 @@ public class PlayerController : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        bool canGetKey = false;
+
         if(collision.tag == "Key")
         {
             canGetKey = true;
+            Key = collision.gameObject;
         }
-        if(canGetKey&&Input.GetKeyDown(KeyCode.E))
-        {
-            haveKey = true;
-        }
+       
         if(collision.tag == "Ci")
         {
-            Debug.Log("À¿¿≤");
+            //PlayDeathAnimation.Instance.GetComponent<PlayDeathAnimation>().Die();
         }
     }
 }
