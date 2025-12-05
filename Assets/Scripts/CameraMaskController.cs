@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class CameraMaskController : MonoBehaviour
 {
@@ -8,223 +9,191 @@ public class CameraMaskController : MonoBehaviour
 
     [Header("玩家设置")]
     public GameObject player;
-    public LayerMask playerLayer = 1 << 8; // 玩家在第8层
+    public LayerMask playerLayer = 1 << LayerMask.NameToLayer("Player"); // 修正：通过名称获取层级
+    public Transform defaultSpawnPoint; // 默认生成点
 
     [Header("房间列表")]
     public List<Room> rooms = new List<Room>();
+
+    [Header("生成设置")]
+    public float spawnDelay = 0.1f; // 生成延迟
+    public bool autoSpawnOnSwitch = true; // 切换房间时自动生成
+    public bool showDebug = true; // 调试开关
 
     [System.Serializable]
     public class Room
     {
         public string roomName = "新房间";
         public LayerMask roomLayers;
+        public Transform spawnPoint; // 房间专属生成点
     }
 
     private int currentRoomIndex = 0;
 
     void Start()
     {
-        // 自动获取引用
         if (mainCamera == null) mainCamera = Camera.main;
         if (player == null) player = GameObject.FindGameObjectWithTag("Player");
 
-        Debug.Log("=== 摄像机遮罩控制器初始化 ===");
+        if (showDebug)
+        {
+            Debug.Log("=== 摄像机遮罩控制器初始化 ===");
+            Debug.Log("主摄像机: " + (mainCamera != null ? "已找到" : "未找到"));
+            Debug.Log("玩家: " + (player != null ? "已找到" : "未找到"));
+            Debug.Log("房间数量: " + rooms.Count);
+        }
 
-        // 设置玩家层级
         if (player != null)
         {
-            int playerLayerIndex = LayerMaskToLayerIndex(playerLayer);
-            SetGameObjectAndChildrenLayer(player, playerLayerIndex);
-            Debug.Log($"玩家设置到层级: {playerLayerIndex}");
+            int playerLayerIndex = LayerMask.NameToLayer("Player");
+            if (playerLayerIndex >= 0)
+            {
+                SetObjectAndChildrenLayer(player, playerLayerIndex);
+                if (showDebug) Debug.Log("玩家层级: " + playerLayerIndex);
+            }
         }
 
-        // 初始切换到第一个房间
-        if (rooms.Count > 0)
-        {
-            SwitchToRoom(0);
-        }
-        else
-        {
-            Debug.LogWarning("没有设置任何房间！");
-        }
+        if (rooms.Count > 0) SwitchToRoom(0);
     }
 
     /// <summary>
-    /// 切换房间的核心方法
+    /// 主功能：切换房间
     /// </summary>
     public void SwitchToRoom(int roomIndex)
     {
         if (roomIndex < 0 || roomIndex >= rooms.Count)
         {
-            Debug.LogError($"❌ 房间索引{roomIndex}超出范围！有效范围: 0-{rooms.Count - 1}");
+            Debug.LogError("❌ 房间索引" + roomIndex + "超出范围！有效范围: 0-" + (rooms.Count - 1));
             return;
         }
 
-        Debug.Log($"=== 开始切换房间 ===");
-        Debug.Log($"从房间 {currentRoomIndex} 切换到房间 {roomIndex}");
-        Debug.Log($"目标房间名: {rooms[roomIndex].roomName}");
+        if (showDebug) Debug.Log("=== 开始切换房间 ===");
+        if (showDebug) Debug.Log("从房间 " + currentRoomIndex + " 切换到房间 " + roomIndex);
+        if (showDebug) Debug.Log("目标房间名: " + rooms[roomIndex].roomName);
 
         // 检查目标房间的层级掩码
         LayerMask targetRoomLayers = rooms[roomIndex].roomLayers;
-        Debug.Log($"目标房间层级值: {targetRoomLayers.value}");
-
         if (targetRoomLayers.value == 0)
         {
-            Debug.LogError($"❌ 房间{roomIndex}的层级掩码为0！请检查设置");
+            Debug.LogError("❌ 房间" + roomIndex + "的层级掩码为0！请检查设置");
             return;
         }
 
-        // 计算最终遮罩：房间层级 + 玩家层级
-        LayerMask finalMask = targetRoomLayers | playerLayer;
-        Debug.Log($"遮罩计算: 房间({targetRoomLayers.value}) | 玩家({playerLayer.value}) = {finalMask.value}");
+        if (showDebug)
+        {
+            Debug.Log("玩家层级值: " + playerLayer.value);
+            Debug.Log("目标房间层级值: " + targetRoomLayers.value);
+        }
 
-        // 应用遮罩 - 修正：直接赋值，不需要.value
+        // 计算最终遮罩
+        LayerMask finalMask = targetRoomLayers | playerLayer;
+        if (showDebug) Debug.Log("最终遮罩值: " + finalMask.value);
+
+        // 应用遮罩
         mainCamera.cullingMask = finalMask;
         currentRoomIndex = roomIndex;
 
-        Debug.Log($"✅ 切换完成！摄像机遮罩: {mainCamera.cullingMask}");
+        if (showDebug) Debug.Log("✅ 切换到房间: " + rooms[roomIndex].roomName);
 
         // 立即验证结果
         ValidateRoomSwitch();
+
+        // 自动生成玩家
+        if (autoSpawnOnSwitch && player != null)
+        {
+            StartCoroutine(SpawnInRoom(roomIndex));
+        }
     }
 
     /// <summary>
-    /// 验证房间切换结果 - 修正版
+    /// 验证房间切换结果
     /// </summary>
     private void ValidateRoomSwitch()
     {
-        // 修正：mainCamera.cullingMask 是 int 类型，不需要 .value
         int currentMaskValue = mainCamera.cullingMask;
-
-        // 修正：LayerMask 需要 .value 但要用 (int) 转换
         int targetRoomValue = (int)rooms[currentRoomIndex].roomLayers.value;
         int playerLayerValue = (int)playerLayer.value;
 
         bool containsRoom = (currentMaskValue & targetRoomValue) != 0;
         bool containsPlayer = (currentMaskValue & playerLayerValue) != 0;
 
-        Debug.Log($"验证结果: 包含房间={containsRoom}, 包含玩家={containsPlayer}");
+        Debug.Log("验证结果: 包含房间=" + containsRoom + "，包含玩家=" + containsPlayer);
 
         if (!containsRoom)
         {
-            Debug.LogError($"❌ 严重错误：摄像机看不到房间{currentRoomIndex}！");
-            Debug.LogError($"当前遮罩: {currentMaskValue}, 房间遮罩: {targetRoomValue}");
+            Debug.LogError("❌ 严重错误: 摄像机看不到房间" + currentRoomIndex + "！");
         }
 
         if (!containsPlayer)
         {
-            Debug.LogError("❌ 严重错误：摄像机看不到玩家！");
+            Debug.LogError("❌ 严重错误: 摄像机看不到玩家！");
         }
     }
 
     /// <summary>
-    /// LayerMask转LayerIndex - 修正版
+    /// 在房间生成玩家
     /// </summary>
-    private int LayerMaskToLayerIndex(LayerMask layerMask)
+    private IEnumerator SpawnInRoom(int roomIndex)
     {
-        if (layerMask.value == 0)
+        yield return new WaitForSeconds(spawnDelay);
+
+        if (player == null) yield break;
+
+        Transform spawnPoint = null;
+        if (roomIndex >= 0 && roomIndex < rooms.Count && rooms[roomIndex].spawnPoint != null)
         {
-            Debug.LogWarning("LayerMask值为0");
-            return 0;
+            spawnPoint = rooms[roomIndex].spawnPoint;
+        }
+        else if (defaultSpawnPoint != null)
+        {
+            spawnPoint = defaultSpawnPoint;
         }
 
-        int layerIndex = (int)Mathf.Log(layerMask.value, 2);
-        return layerIndex;
+        if (spawnPoint != null)
+        {
+            player.transform.position = spawnPoint.position;
+            player.transform.rotation = spawnPoint.rotation;
+            if (showDebug) Debug.Log("📍 玩家生成在: " + spawnPoint.position);
+        }
     }
 
     /// <summary>
-    /// 设置物体及其所有子物体的层级
+    /// 设置物体及其子物体的层级
     /// </summary>
-    private void SetGameObjectAndChildrenLayer(GameObject target, int layerIndex)
+    private void SetObjectAndChildrenLayer(GameObject target, int layerIndex)
     {
         if (target == null) return;
 
         target.layer = layerIndex;
         foreach (Transform child in target.transform)
         {
-            SetGameObjectAndChildrenLayer(child.gameObject, layerIndex);
+            SetObjectAndChildrenLayer(child.gameObject, layerIndex);
         }
     }
 
     /// <summary>
-    /// 检查所有层级设置
+    /// 获取房间数量
     /// </summary>
-    [ContextMenu("检查所有层级设置")]
-    public void CheckAllLayerSettings()
+    public int GetRoomCount()
     {
-        Debug.Log("=== 层级设置详细检查 ===");
+        return rooms.Count;
+    }
 
-        // 检查玩家层级
-        Debug.Log($"玩家层级设置: 值={playerLayer.value}, 层级索引={LayerMaskToLayerIndex(playerLayer)}");
-        if (player != null)
-        {
-            Debug.Log($"玩家实际层级: {player.layer}");
-        }
+    [ContextMenu("测试切换到房间2")]
+    public void TestSwitchToRoom2()
+    {
+        SwitchToRoom(1);
+    }
 
-        // 检查所有房间层级
+    [ContextMenu("检查层级")]
+    public void CheckLayers()
+    {
+        Debug.Log("=== 层级检查 ===");
+        Debug.Log("玩家层级值: " + playerLayer.value);
+
         for (int i = 0; i < rooms.Count; i++)
         {
-            int layerIndex = LayerMaskToLayerIndex(rooms[i].roomLayers);
-            Debug.Log($"房间{i}({rooms[i].roomName}): 值={rooms[i].roomLayers.value}, 层级索引={layerIndex}");
-
-            if (rooms[i].roomLayers.value == 0)
-            {
-                Debug.LogError($"❌ 房间{i}的层级掩码为0！");
-            }
+            Debug.Log("房间" + i + "(" + rooms[i].roomName + "): " + rooms[i].roomLayers.value);
         }
-
-        Debug.Log($"当前摄像机遮罩值: {mainCamera.cullingMask}");
-    }
-
-    /// <summary>
-    /// 手动切换到房间2
-    /// </summary>
-    [ContextMenu("手动切换到房间2")]
-    public void ManualSwitchToRoom2()
-    {
-        if (rooms.Count >= 2)
-        {
-            Debug.Log("🔧 手动切换到房间2");
-            SwitchToRoom(1); // 房间2的索引是1
-        }
-        else
-        {
-            Debug.LogError("❌ 房间2不存在！");
-        }
-    }
-
-    /// <summary>
-    /// 添加新房间
-    /// </summary>
-    public void AddRoom(string roomName, LayerMask roomLayers)
-    {
-        Room newRoom = new Room();
-        newRoom.roomName = roomName;
-        newRoom.roomLayers = roomLayers;
-        rooms.Add(newRoom);
-        Debug.Log($"✅ 添加房间: {roomName} (层级值: {roomLayers.value})");
-    }
-
-    /// <summary>
-    /// 添加测试房间
-    /// </summary>
-    [ContextMenu("添加测试房间")]
-    public void AddTestRoom()
-    {
-        int nextLayer = 9 + rooms.Count; // 从第9层开始
-        LayerMask newLayerMask = 1 << nextLayer;
-        AddRoom($"测试房间{rooms.Count + 1}", newLayerMask);
-    }
-
-    /// <summary>
-    /// 打印调试信息
-    /// </summary>
-    [ContextMenu("打印调试信息")]
-    public void PrintDebugInfo()
-    {
-        Debug.Log($"=== 调试信息 ===");
-        Debug.Log($"当前房间索引: {currentRoomIndex}");
-        Debug.Log($"总房间数: {rooms.Count}");
-        Debug.Log($"摄像机遮罩: {mainCamera.cullingMask}");
     }
 }

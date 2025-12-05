@@ -1,93 +1,44 @@
-ï»¿using UnityEngine;
+using UnityEngine;
 
-public class RoomTrigger : MonoBehaviour
+public class RoomTrigger2D : MonoBehaviour
 {
-    [Header("è§¦å‘è®¾ç½®")]
-    public int targetRoomIndex = 1;
+    [Header("·¿¼äÉèÖÃ")]
+    public string targetRoomName;  // ÒªÇĞ»»µ½µÄ·¿¼äÃû³Æ
+
+    [Header("Åö×²¼ì²âÉèÖÃ")]
     public string playerTag = "Player";
+    public float switchCooldown = 0.5f;  // ÇĞ»»ÀäÈ´Ê±¼ä
 
-    [Header("è°ƒè¯•")]
-    public bool enableDebug = true;
+    private float lastSwitchTime = 0f;
 
-    private CameraMaskController cameraController;
-    private Collider2D triggerCollider;
-
-    void Start()
+    private void Start()
     {
-        // è·å–æˆ–æ·»åŠ 2Dç¢°æ’ä½“
-        triggerCollider = GetComponent<Collider2D>();
-        if (triggerCollider == null)
+        // È·±£Åö×²ÌåÊÇ´¥·¢Æ÷
+        if (TryGetComponent<Collider2D>(out var collider2D))
         {
-            Debug.LogWarning("âŒ é—¨è§¦å‘å™¨ç¼ºå°‘Collider2Dç»„ä»¶ï¼å·²è‡ªåŠ¨æ·»åŠ ");
-            triggerCollider = gameObject.AddComponent<BoxCollider2D>();
-            triggerCollider.isTrigger = true;
+            collider2D.isTrigger = true;
         }
-
-        // æŸ¥æ‰¾æ‘„åƒæœºæ§åˆ¶å™¨
-        cameraController = FindObjectOfType<CameraMaskController>();
-        if (cameraController == null)
+        else
         {
-            Debug.LogError("âŒ æœªæ‰¾åˆ°CameraMaskControllerï¼");
-        }
-        else if (enableDebug)
-        {
-            Debug.Log("âœ… æˆåŠŸæ‰¾åˆ°CameraMaskController");
+            Debug.LogError($"{gameObject.name} ÉÏÃ»ÓĞCollider2D×é¼ş£¡");
         }
     }
 
-    /// <summary>
-    /// 2Dç¢°æ’æ£€æµ‹
-    /// </summary>
-    void OnTriggerEnter2D(Collider2D other)
+    // 2DÅö×²¼ì²â
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag))
+        // ¼ì²éÀäÈ´Ê±¼ä
+        if (Time.time - lastSwitchTime < switchCooldown) return;
+
+        if (other.CompareTag(playerTag))
         {
-            if (enableDebug) Debug.Log($"âš ï¸ å¿½ç•¥éç©å®¶ç‰©ä½“: {other.name}");
-            return;
-        }
+            Debug.Log($"Íæ¼Ò½øÈë {gameObject.name}£¬ÇĞ»»µ½: {targetRoomName}");
 
-        if (cameraController == null)
-        {
-            Debug.LogError("âŒ cameraControllerä¸ºnull");
-            return;
-        }
-
-        if (enableDebug) Debug.Log($"ğŸ¯ ç©å®¶ç¢°åˆ°é—¨ï¼Œåˆ‡æ¢åˆ°æˆ¿é—´ {targetRoomIndex}");
-
-        // åˆ‡æ¢æˆ¿é—´
-        cameraController.SwitchToRoom(targetRoomIndex);
-    }
-
-    /// <summary>
-    /// å¼ºåˆ¶è§¦å‘æµ‹è¯•
-    /// </summary>
-    [ContextMenu("å¼ºåˆ¶è§¦å‘æµ‹è¯•")]
-    public void ForceTriggerTest()
-    {
-        if (cameraController != null)
-        {
-            Debug.Log("ğŸ”§ å¼ºåˆ¶è§¦å‘æµ‹è¯•");
-            cameraController.SwitchToRoom(targetRoomIndex);
-        }
-    }
-
-    /// <summary>
-    /// å¯è§†åŒ–è°ƒè¯•
-    /// </summary>
-    void OnDrawGizmos()
-    {
-        if (!enableDebug) return;
-
-        Collider2D collider = triggerCollider != null ? triggerCollider : GetComponent<Collider2D>();
-        if (collider == null) return;
-
-        Gizmos.color = Color.green;
-
-        if (collider is BoxCollider2D boxCollider)
-        {
-            Vector3 center = transform.TransformPoint(boxCollider.offset);
-            Vector3 size = new Vector3(boxCollider.size.x, boxCollider.size.y, 0.1f);
-            Gizmos.DrawWireCube(center, size);
+            if (RoomManager2D.Instance != null && !string.IsNullOrEmpty(targetRoomName))
+            {
+                lastSwitchTime = Time.time;
+                RoomManager2D.Instance.EnterRoomByName(targetRoomName);
+            }
         }
     }
 }

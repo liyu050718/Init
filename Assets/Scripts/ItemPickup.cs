@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class AutoClosePickup : MonoBehaviour
+public class AutoClosePickup : MonoSingleton<AutoClosePickup>
 {
     [Header("物品信息")]
     public string itemName = "物品名称";
@@ -99,7 +99,7 @@ public class AutoClosePickup : MonoBehaviour
         }
     }
 
-    void PickupItem()
+    public void PickupItem()
     {
         isPickedUp = true;
 
