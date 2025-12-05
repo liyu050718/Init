@@ -11,6 +11,7 @@ public class PropManager : MonoSingleton<PropManager>
     public string address = "Textures/PropUi";
     public GameObject parent;
     public Item currentItem;
+    public int currentId = -1;
     public List<Item> items = new List<Item>();
     public Dictionary<string, Texture2D> ui = new Dictionary<string, Texture2D>();
     public void Start()
@@ -26,6 +27,7 @@ public class PropManager : MonoSingleton<PropManager>
     public void Pick(Item item)
     {
         Debug.Log("ºÒµΩ¡À" + item);
+        //AutoClosePickup.Instance.GetComponent<AutoClosePickup>().PickupItem();
         items.Add(item);
         UpdateUI();
     }
@@ -44,8 +46,31 @@ public class PropManager : MonoSingleton<PropManager>
                 tex, new Rect(0, 0, tex.width, tex.height), Vector2.one * 0.5f);
         }
     }
-public void Switch(int id)
+    public void Switch(int id)
     {
-        currentItem = items[id];
+
+        if(id == 0)
+        {
+            if(currentId != -1)
+                parent.transform.GetChild(currentId).transform.localScale /= 1.2f;
+            Debug.Log("hahah");
+            parent.transform.GetChild(0).transform.localScale *= 1.2f;
+            currentId = 0;
+            //parent.transform.parent.transform.GetChild(id).transform.localScale *= 1.2f;
+        }
+        else if (id > items.Count)
+        {
+            if (currentId != -1)
+                parent.transform.GetChild(currentId).transform.localScale /= 1.2f;
+            parent.transform.GetChild(id).transform.localScale *= 1.2f;
+            currentId = id;
+        }
+        else
+        {
+            currentItem = items[id];
+            parent.transform.GetChild(currentId).transform.localScale /= 1.2f;
+            currentId = id;
+            parent.transform.GetChild(id).transform.localScale *= 1.2f;
+        }
     }
 }

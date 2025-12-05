@@ -10,7 +10,7 @@ public class EnermyInstan : MonoBehaviour
     {
         DelayHelper.CallDelayed(() =>
         {
-            
+            Instantiate(E).transform.position = transform.position;
         }, time);
     }
 
