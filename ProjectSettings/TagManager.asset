@@ -7,6 +7,7 @@ TagManager:
   - Key
   - Room
   - Ci
+  - Boss
   layers:
   - Default
   - TransparentFX
@@ -52,4 +53,10 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 4251780421
+    locked: 0
+  - name: New Layer 4
+    uniqueID: 2867209465
+    locked: 0
+  - name: UI
+    uniqueID: 3159202533
     locked: 0

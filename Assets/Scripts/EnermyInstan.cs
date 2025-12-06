@@ -10,7 +10,10 @@ public class EnermyInstan : MonoBehaviour
     {
         DelayHelper.CallDelayed(() =>
         {
-            Instantiate(E).transform.position = transform.position;
+            GameObject a = Instantiate(E);
+            a.transform.position = transform.position;
+            a.GetComponent<SpriteRenderer>().sortingLayerName = "Player";
+
         }, time);
     }
 

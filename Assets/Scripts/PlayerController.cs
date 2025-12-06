@@ -120,7 +120,7 @@ public class PlayerController : MonoSingleton<PlayerController> {
             Key = collision.gameObject;
         }
        
-        if(collision.tag == "Ci")
+        if(collision.tag == "Ci"||collision.tag == "Boss")
         {
             //PlayDeathAnimation.Instance.GetComponent<PlayDeathAnimation>().Die();
             die = true;
