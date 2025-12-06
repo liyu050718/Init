@@ -12,7 +12,7 @@ public class PlayDeathAnimation : MonoSingleton<PlayDeathAnimation>
     void Update()
     {
         // Ê¾Àı£º°´D¼üÄ£ÄâËÀÍö
-        if (Input.GetKeyDown(KeyCode.D) && isAlive)
+        if (Input.GetKeyDown(KeyCode.C) && isAlive)
         {
             Die();
         }

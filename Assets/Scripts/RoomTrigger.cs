@@ -34,10 +34,14 @@ public class RoomTrigger2D : MonoBehaviour
         {
             Debug.Log($"玩家进入 {gameObject.name}，切换到: {targetRoomName}");
 
-            if (RoomManager2D.Instance != null && !string.IsNullOrEmpty(targetRoomName))
+            if (RoomManager2D.Instance != null && !string.IsNullOrEmpty(targetRoomName)&&PlayerController.Instance.haveKey)
             {
                 lastSwitchTime = Time.time;
                 RoomManager2D.Instance.EnterRoomByName(targetRoomName);
+            }
+            else if(!PlayerController.Instance.haveKey)
+            {
+                Debug.Log("没钥匙");
             }
         }
     }

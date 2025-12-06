@@ -27,9 +27,16 @@ public class Boss : MonoBehaviour
             anim.Play("Move2");
             transform.localScale = new Vector2(-transform.localScale.x, transform.localScale.y); 
         }
+        if (Hp <= 0)
+        {
+            Destroy(gameObject);
+        }
     }
     public void Move()
     {
+
+        if ((player.transform.position - transform.position).magnitude > 5)
+            return;
         transform.position += (player.transform.position - transform.position).normalized * speed*Time.deltaTime;
         if(player.transform.position.x > transform.position.x&&dir == 1)
         {

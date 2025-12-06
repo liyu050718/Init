@@ -33,12 +33,19 @@ public class PropManager : MonoSingleton<PropManager>
     }
     public void Discard(Item item)
     {
+        currentId = 0;
+        currentItem = items[0];
         items.Remove(item);
         UpdateUI();
     }
 
     public void UpdateUI()
     {
+        for(int i = 0;i<6;i++)
+        {
+            parent.transform.GetChild(i).GetComponent<UnityEngine.UI.Image>().sprite = null;
+              
+        }
         for(int i = 0;i<items.Count;i++)
         {
             Texture2D tex = ui[items[i].ToString()];
@@ -56,6 +63,7 @@ public class PropManager : MonoSingleton<PropManager>
             Debug.Log("hahah");
             parent.transform.GetChild(0).transform.localScale *= 1.2f;
             currentId = 0;
+            currentItem = items[0];
             //parent.transform.parent.transform.GetChild(id).transform.localScale *= 1.2f;
         }
         else if (id > items.Count)

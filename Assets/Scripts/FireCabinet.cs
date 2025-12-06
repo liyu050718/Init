@@ -19,6 +19,7 @@ public class FireCabinet : MonoBehaviour
         {
             sr.sprite = sp;
             Instantiate(item).transform.position = transform.position;
+            this.enabled = false;
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)

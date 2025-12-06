@@ -1,7 +1,10 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class SimplePendulum2D : MonoBehaviour
 {
+    public bool fall = false;
+    public float time = 5f;
     [Header("摆动参数")]
     [Tooltip("最大摆动角度（度）")]
     [Range(0, 90)]
@@ -37,9 +40,26 @@ public class SimplePendulum2D : MonoBehaviour
             // 如果没有指定悬挂点，在当前位置上方创建虚拟悬挂点
             initialPivotPosition = transform.position + Vector3.up * ropeLength;
         }
+        DelayHelper.CallDelayed(() =>
+        {
+            fall = false;
+            transform.DOMove(transform.position + Vector3.down * 3, 0.5f);
+            
+        }, time);
+        DelayHelper.CallDelayed(() =>
+        {
+            gameObject.SetActive(false);
+
+        }, time + 0.5f);
     }
 
     void Update()
+    {
+        if(!fall)
+        Move();
+        
+    }
+    private void Move()
     {
         timeCounter += Time.deltaTime;
 
@@ -53,7 +73,6 @@ public class SimplePendulum2D : MonoBehaviour
         transform.position = fanPosition;
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
-
     Vector3 CalculateFanPosition(float angleDeg)
     {
         // 将角度转换为弧度

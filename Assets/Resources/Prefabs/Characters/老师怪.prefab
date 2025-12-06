@@ -102,7 +102,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   taget: {fileID: 0}
   rb: {fileID: 0}
-  speed: 1
+  speed: 3
   force: 1
 --- !u!50 &8190847131376755916
 Rigidbody2D:
@@ -167,7 +167,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.92, y: 1.92}
+    oldSize: {x: 2.4, y: 2.4}
     newSize: {x: 1.92, y: 1.92}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

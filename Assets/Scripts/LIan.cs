@@ -20,7 +20,9 @@ public class LIan : MonoBehaviour
         if (canUse && Input.GetKeyDown(KeyCode.E) && PropManager.Instance.currentItem == Item.´ò»ð»ú)
         {
             sr.sprite = sp;
-            Instantiate(item).transform.position = tf.position;
+            GameObject a = Instantiate(item);
+            a.transform.position = tf.transform.position;
+            a.GetComponent<SpriteRenderer>().sortingLayerName = "Player";
         }
     }
     private void OnTriggerEnter2D(Collider2D collision)
